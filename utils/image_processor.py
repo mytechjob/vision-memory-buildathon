@@ -104,7 +104,12 @@ class ImageProcessor:
                 color_count = len(colors)
                 
                 # Simple color analysis
-                r, g, b = dominant_color[1]
+                color_value = dominant_color[1]
+                if isinstance(color_value, (tuple, list)) and len(color_value) >= 3:
+                    r, g, b = color_value[:3]
+                else:
+                    # Handle grayscale or single channel images
+                    r = g = b = color_value if isinstance(color_value, (int, float)) else 128
                 if r > 200 and g < 100 and b < 100:
                     color_desc = "predominantly red"
                 elif g > 200 and r < 100 and b < 100:
