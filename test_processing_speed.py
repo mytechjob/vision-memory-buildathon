@@ -121,6 +121,15 @@ def vision_gemini_simple(image):
     except Exception as e:
         return f"Gemini analysis failed: {e}"
 
+def vision_local_fast(image):
+    """Fast local vision analysis"""
+    try:
+        from local_vision_client import LocalVisionClient
+        client = LocalVisionClient()
+        return client.analyze_screenshot(image)
+    except Exception as e:
+        return f"Local vision analysis failed: {e}"
+
 def vision_basic_analysis(image):
     """Basic local image analysis without AI"""
     # Simple color and size analysis
@@ -189,6 +198,7 @@ def run_processing_tests(image_path):
     vision_approaches = [
         ("No Analysis", vision_no_analysis),
         ("Basic Local Analysis", vision_basic_analysis),
+        ("Fast Local Vision (NEW)", vision_local_fast),
         ("OpenAI Vision", vision_openai_simple),
         ("Gemini Vision (Flash)", vision_gemini_simple),
     ]

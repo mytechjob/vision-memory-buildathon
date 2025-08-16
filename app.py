@@ -13,6 +13,7 @@ from utils.image_processor import ImageProcessor
 from utils.search_engine import SearchEngine
 from utils.openai_client import OpenAIClient
 from utils.gemini_client import GeminiClient
+from utils.local_vision_client import LocalVisionClient
 from utils.data_manager import DataManager
 
 # Initialize session state
@@ -31,6 +32,7 @@ def main():
     image_processor = ImageProcessor()
     openai_client = OpenAIClient()
     gemini_client = GeminiClient()
+    local_vision_client = LocalVisionClient()
     data_manager = DataManager()
     
     # Sidebar for file upload and processing
@@ -48,26 +50,29 @@ def main():
         processing_mode = st.selectbox(
             "Choose processing speed:",
             [
-                "🚀 Ultra Fast (30x faster)",
-                "⚖️ Balanced (15x faster)", 
-                "🔍 Detailed - OpenAI (Slower)",
-                "🔍 Detailed - Gemini (Faster)"
+                "🚀 Ultra Fast (OCR only)",
+                "⚡ Fast Local Vision (Recommended)",
+                "⚖️ Balanced (Basic analysis)", 
+                "🔍 Detailed - OpenAI (API)",
+                "🔍 Detailed - Gemini (API)"
             ],
-            index=1,  # Default to Balanced
-            help="Ultra Fast: Quick OCR only. Balanced: OCR + basic analysis. Detailed: OCR + AI vision analysis."
+            index=1,  # Default to Fast Local Vision
+            help="Ultra Fast: Quick OCR only. Fast Local Vision: OCR + fast computer vision analysis (no API). Balanced: OCR + basic analysis. Detailed: OCR + AI API analysis."
         )
         
-        # Show AI provider availability
-        col1, col2 = st.columns(2)
+        # Show provider availability
+        col1, col2, col3 = st.columns(3)
         with col1:
+            st.caption("✅ Local Vision")
+        with col2:
             openai_status = "✅" if openai_client else "❌"
             st.caption(f"{openai_status} OpenAI")
-        with col2:
+        with col3:
             gemini_status = "✅" if gemini_client.is_available() else "❌"
             st.caption(f"{gemini_status} Gemini")
         
         if uploaded_files and st.button("🔄 Process Screenshots", type="primary"):
-            process_screenshots(uploaded_files, image_processor, openai_client, gemini_client, data_manager, processing_mode)
+            process_screenshots(uploaded_files, image_processor, openai_client, gemini_client, local_vision_client, data_manager, processing_mode)
     
     # Main content area
     if st.session_state.processing_complete and not st.session_state.processed_data.empty:
@@ -92,7 +97,7 @@ def main():
             st.code("login form with input fields")
 
 def process_screenshots(uploaded_files: List, image_processor: ImageProcessor, 
-                       openai_client: OpenAIClient, gemini_client: GeminiClient, data_manager: DataManager, processing_mode: str):
+                       openai_client: OpenAIClient, gemini_client: GeminiClient, local_vision_client: LocalVisionClient, data_manager: DataManager, processing_mode: str):
     """Process uploaded screenshots with OCR and AI vision"""
     
     # Progress tracking
@@ -118,6 +123,9 @@ def process_screenshots(uploaded_files: List, image_processor: ImageProcessor,
             if "Ultra Fast" in processing_mode:
                 ocr_text = image_processor.extract_text_fast(image)
                 visual_description = "No visual analysis (Ultra Fast mode)"
+            elif "Fast Local Vision" in processing_mode:
+                ocr_text = image_processor.extract_text_fast(image)
+                visual_description = local_vision_client.analyze_screenshot(image)
             elif "Balanced" in processing_mode:
                 ocr_text = image_processor.extract_text_balanced(image)
                 visual_description = image_processor.analyze_basic(image)
@@ -129,12 +137,12 @@ def process_screenshots(uploaded_files: List, image_processor: ImageProcessor,
                 if gemini_client.is_available():
                     visual_description = gemini_client.analyze_screenshot(image)
                 else:
-                    visual_description = "Gemini API key not configured - using basic analysis"
-                    visual_description = image_processor.analyze_basic(image)
+                    visual_description = "Gemini API key not configured - using local vision analysis"
+                    visual_description = local_vision_client.analyze_screenshot(image)
             else:
-                # Fallback
-                ocr_text = image_processor.extract_text_balanced(image)
-                visual_description = image_processor.analyze_basic(image)
+                # Fallback to fast local vision
+                ocr_text = image_processor.extract_text_fast(image)
+                visual_description = local_vision_client.analyze_screenshot(image)
             
             # Generate thumbnail
             thumbnail = image_processor.create_thumbnail(image)
