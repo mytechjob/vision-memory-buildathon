@@ -340,28 +340,6 @@ def search_interface():
     """Main search interface"""
     st.header(f"🔍 Search: {st.session_state.current_project_name}")
     
-    # Show project stats
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("📷 Total Images", len(st.session_state.processed_data))
-    with col2:
-        if not st.session_state.processed_data.empty:
-            with_text = (st.session_state.processed_data['ocr_text'].str.len() > 0).sum()
-            st.metric("📝 With Text", with_text)
-        else:
-            st.metric("📝 With Text", 0)
-    with col3:
-        if not st.session_state.processed_data.empty:
-            latest_date = st.session_state.processed_data['processed_timestamp'].max()
-            if pd.notna(latest_date):
-                st.metric("📅 Latest Upload", latest_date.strftime('%m/%d/%Y'))
-            else:
-                st.metric("📅 Latest Upload", "N/A")
-        else:
-            st.metric("📅 Latest Upload", "N/A")
-    
-    st.divider()
-    
     # Search input
     query = st.text_input(
         "Enter your search query:",
