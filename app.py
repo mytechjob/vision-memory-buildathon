@@ -39,65 +39,88 @@ def main():
     local_vision_client = LocalVisionClient()
     data_manager = DataManager()
     
-    # Sidebar for project management and file upload
-    with st.sidebar:
-        # Project Management Section
-        st.header("📂 Project Management")
-        
-        # Get existing projects
-        projects = data_manager.get_projects()
-        
-        # Project selection/creation
-        col1, col2 = st.columns([3, 1])
-        
-        with col1:
-            project_options = ["-- Create New Project --"] + [f"{p['name']} ({p['image_count']} images)" for p in projects]
-            selected_option = st.selectbox(
-                "Select or Create Project:",
-                project_options,
-                index=0 if not st.session_state.selected_project_id else None
-            )
-        
-        with col2:
-            if st.button("🗑️", help="Delete selected project", disabled=selected_option == "-- Create New Project --"):
-                if selected_option and selected_option != "-- Create New Project --":
-                    # Find project to delete
-                    project_name = selected_option.split(" (")[0]
-                    project_to_delete = next((p for p in projects if p['name'] == project_name), None)
-                    if project_to_delete:
-                        if data_manager.delete_project(project_to_delete['id']):
-                            st.success(f"Deleted project: {project_name}")
-                            st.session_state.selected_project_id = None
-                            st.session_state.current_project_name = None
-                            st.rerun()
-        
-        # Handle project selection
-        if selected_option == "-- Create New Project --":
-            st.subheader("➕ Create New Project")
-            new_project_name = st.text_input("Project Name:", placeholder="My Screenshots")
-            new_project_desc = st.text_area("Description (optional):", placeholder="Brief description of this project...")
+    # Get existing projects
+    projects = data_manager.get_projects()
+    
+    # Project selection in main area (under header)
+    st.subheader("📂 Select Project")
+    
+    # Set default selection to first project if none selected and projects exist
+    if not st.session_state.selected_project_id and projects:
+        st.session_state.selected_project_id = projects[0]['id']
+        st.session_state.current_project_name = projects[0]['name']
+    
+    col1, col2 = st.columns([4, 1])
+    
+    with col1:
+        if projects:
+            # Create options without "Create New Project" option
+            project_options = [f"{p['name']} ({p['image_count']} images)" for p in projects]
             
-            if st.button("Create Project", type="primary", disabled=not new_project_name.strip()):
-                project_id = data_manager.create_project(new_project_name.strip(), new_project_desc.strip())
-                if project_id:
-                    st.session_state.selected_project_id = project_id
-                    st.session_state.current_project_name = new_project_name.strip()
-                    st.success(f"Created project: {new_project_name}")
-                    time.sleep(1)
-                    st.rerun()
-        else:
-            # Parse existing project selection
+            # Find current selected index
+            current_index = 0
+            if st.session_state.selected_project_id:
+                for i, project in enumerate(projects):
+                    if project['id'] == st.session_state.selected_project_id:
+                        current_index = i
+                        break
+            
+            selected_option = st.selectbox(
+                "Choose a project:",
+                project_options,
+                index=current_index,
+                key="project_selector"
+            )
+            
+            # Handle project selection
             if selected_option:
                 project_name = selected_option.split(" (")[0]
                 selected_project = next((p for p in projects if p['name'] == project_name), None)
                 if selected_project:
                     st.session_state.selected_project_id = selected_project['id']
                     st.session_state.current_project_name = selected_project['name']
-                    
-                    # Show project info
-                    st.info(f"**Selected:** {selected_project['name']}\n\n{selected_project['description'] or 'No description'}")
-                    st.caption(f"📅 Created: {selected_project['created_at'].strftime('%Y-%m-%d')}")
-                    st.caption(f"🖼️ Images: {selected_project['image_count']}")
+        else:
+            st.info("No projects found. Create your first project in the sidebar.")
+    
+    with col2:
+        if projects and st.session_state.selected_project_id:
+            if st.button("🗑️", help="Delete selected project"):
+                # Find project to delete
+                project_to_delete = next((p for p in projects if p['id'] == st.session_state.selected_project_id), None)
+                if project_to_delete:
+                    if data_manager.delete_project(project_to_delete['id']):
+                        st.success(f"Deleted project: {project_to_delete['name']}")
+                        st.session_state.selected_project_id = None
+                        st.session_state.current_project_name = None
+                        st.rerun()
+    
+    # Show selected project info
+    if st.session_state.selected_project_id and projects:
+        selected_project = next((p for p in projects if p['id'] == st.session_state.selected_project_id), None)
+        if selected_project:
+            with st.expander("📋 Project Details", expanded=False):
+                st.write(f"**Description:** {selected_project['description'] or 'No description'}")
+                st.write(f"**Created:** {selected_project['created_at'].strftime('%Y-%m-%d')}")
+                st.write(f"**Images:** {selected_project['image_count']}")
+    
+    st.divider()
+    
+    # Sidebar for project creation and file upload
+    with st.sidebar:
+        # Project Creation Section
+        st.header("➕ Create New Project")
+        
+        new_project_name = st.text_input("Project Name:", placeholder="My Screenshots")
+        new_project_desc = st.text_area("Description (optional):", placeholder="Brief description of this project...")
+        
+        if st.button("Create Project", type="primary", disabled=not new_project_name.strip()):
+            project_id = data_manager.create_project(new_project_name.strip(), new_project_desc.strip())
+            if project_id:
+                st.session_state.selected_project_id = project_id
+                st.session_state.current_project_name = new_project_name.strip()
+                st.success(f"Created project: {new_project_name}")
+                time.sleep(1)
+                st.rerun()
         
         st.divider()
         
@@ -113,7 +136,7 @@ def main():
                 help="Upload PNG, JPG, or JPEG screenshot files"
             )
         else:
-            st.info("👆 Select or create a project first to upload screenshots")
+            st.info("Select a project above to upload screenshots")
             uploaded_files = None
         
         st.subheader("⚡ Processing Mode")
@@ -158,11 +181,9 @@ def main():
                 load_project_data(data_manager, st.session_state.selected_project_id)
                 st.rerun()
             else:
-                st.info(f"📂 Project '{st.session_state.current_project_name}' is ready. Upload screenshots to start searching.")
+                st.info(f"📂 Project '{st.session_state.current_project_name}' is ready. Upload screenshots in the sidebar to start searching.")
     else:
-        st.info("👈 Select or create a project in the sidebar to get started")
-        
-        # Display sample query examples
+        # Display sample query examples when no project is selected
         st.subheader("💡 Example Queries")
         col1, col2 = st.columns(2)
         
