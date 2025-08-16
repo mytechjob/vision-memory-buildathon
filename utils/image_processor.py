@@ -56,6 +56,10 @@ class ImageProcessor:
     def extract_text_fast(self, image: Image.Image) -> str:
         """Ultra fast OCR extraction with minimal processing"""
         try:
+            # Convert to RGB if needed (important for HEIC and other formats)
+            if image.mode != 'RGB':
+                image = image.convert('RGB')
+            
             config = r'--oem 3 --psm 6'
             text = pytesseract.image_to_string(image, config=config)
             return self._clean_text(text)
