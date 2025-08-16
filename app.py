@@ -29,8 +29,141 @@ if 'current_project_name' not in st.session_state:
     st.session_state.current_project_name = None
 
 def main():
-    st.title("🔍 Visual Memory Search")
-    st.markdown("Search through your screenshots using natural language queries")
+    # Custom CSS for modern dark theme matching the provided design
+    st.markdown("""
+    <style>
+    .main-header {
+        background: linear-gradient(135deg, #0E1117 0%, #1A1D23 100%);
+        padding: 1.5rem 2rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        border: 1px solid #2D3139;
+    }
+    
+    .header-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #FAFAFA;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .header-subtitle {
+        color: #B3B3B3;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+    
+    .project-card {
+        background: #1A1D23;
+        border: 1px solid #2D3139;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .metric-card {
+        background: #1A1D23;
+        border: 1px solid #2D3139;
+        border-radius: 6px;
+        padding: 1rem;
+        text-align: center;
+    }
+    
+    .metric-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #00C9A7;
+        margin: 0;
+    }
+    
+    .metric-label {
+        font-size: 0.8rem;
+        color: #B3B3B3;
+        margin: 0;
+    }
+    
+    .search-container {
+        background: #1A1D23;
+        border: 1px solid #2D3139;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .stSelectbox > div > div {
+        background-color: #1A1D23;
+        border: 1px solid #2D3139;
+    }
+    
+    .stTextInput > div > div > input {
+        background-color: #1A1D23;
+        border: 1px solid #2D3139;
+        color: #FAFAFA;
+    }
+    
+    /* Table styling */
+    .result-table {
+        background: #1A1D23;
+        border: 1px solid #2D3139;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+    
+    .table-header {
+        background: #262B35;
+        padding: 1rem;
+        border-bottom: 1px solid #2D3139;
+        font-weight: 600;
+        color: #FAFAFA;
+    }
+    
+    .table-row {
+        padding: 1rem;
+        border-bottom: 1px solid #2D3139;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 0.5rem;
+    }
+    
+    .status-active { background-color: #00C9A7; }
+    .status-processing { background-color: #FFB800; }
+    .status-error { background-color: #FF4B4B; }
+    
+    .confidence-badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .confidence-high { background-color: rgba(0, 201, 167, 0.2); color: #00C9A7; }
+    .confidence-medium { background-color: rgba(255, 184, 0, 0.2); color: #FFB800; }
+    .confidence-low { background-color: rgba(255, 75, 75, 0.2); color: #FF4B4B; }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Main header
+    st.markdown("""
+    <div class="main-header">
+        <div class="header-title">
+            <span>🔍</span>
+            Visual Memory Search
+        </div>
+        <div class="header-subtitle">Search through your screenshots using natural language queries</div>
+    </div>
+    """, unsafe_allow_html=True)
     
     # Initialize components
     image_processor = ImageProcessor()
@@ -42,8 +175,8 @@ def main():
     # Get existing projects
     projects = data_manager.get_projects()
     
-    # Project selection in main area (under header)
-    st.subheader("📂 Select Project")
+    # Project management in main area
+    st.markdown("### 📂 Project Management")
     
     # Set default selection to first project if none selected and projects exist
     if not st.session_state.selected_project_id and projects:
@@ -80,11 +213,16 @@ def main():
                     st.session_state.selected_project_id = selected_project['id']
                     st.session_state.current_project_name = selected_project['name']
         else:
-            st.info("No projects found. Create your first project in the sidebar.")
+            st.markdown("""
+            <div class="project-card">
+                <h4 style="color: #FAFAFA; margin-top: 0;">No projects found</h4>
+                <p style="color: #B3B3B3;">Create your first project using the sidebar to get started.</p>
+            </div>
+            """, unsafe_allow_html=True)
     
     with col2:
         if projects and st.session_state.selected_project_id:
-            if st.button("🗑️", help="Delete selected project"):
+            if st.button("Delete Project", type="secondary", help="Delete selected project"):
                 # Find project to delete
                 project_to_delete = next((p for p in projects if p['id'] == st.session_state.selected_project_id), None)
                 if project_to_delete:
@@ -94,12 +232,46 @@ def main():
                         st.session_state.current_project_name = None
                         st.rerun()
     
-    st.divider()
+    # Modern sidebar styling
+    st.markdown("""
+    <style>
+    .sidebar .sidebar-content {
+        background: #0E1117;
+    }
+    
+    .upload-section {
+        background: #1A1D23;
+        border: 1px solid #2D3139;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .processing-stats {
+        background: #1A1D23;
+        border: 1px solid #2D3139;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .sidebar-header {
+        color: #FAFAFA;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #2D3139;
+    }
+    </style>
+    """, unsafe_allow_html=True)
     
     # Sidebar for project creation and file upload
     with st.sidebar:
+        st.markdown('<div class="sidebar-header">🏗️ Project Controls</div>', unsafe_allow_html=True)
+        
         # Project Creation Section
-        if st.button("➕ New Project", type="primary", use_container_width=True):
+        if st.button("New Project", type="primary", use_container_width=True):
             # Toggle project creation form visibility
             if 'show_project_form' not in st.session_state:
                 st.session_state.show_project_form = False
@@ -132,41 +304,51 @@ def main():
         
         # File Upload Section (only show if project is selected)
         if st.session_state.selected_project_id:
-            st.header("📁 Upload Screenshots")
-            st.caption(f"Uploading to: **{st.session_state.current_project_name}**")
+            st.markdown('<div class="sidebar-header">📁 Upload Screenshots</div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="color: #B3B3B3; font-size: 0.9rem; margin-bottom: 1rem;">Uploading to: <strong style="color: #00C9A7;">{st.session_state.current_project_name}</strong></div>', unsafe_allow_html=True)
             
             uploaded_files = st.file_uploader(
                 "Choose screenshot files",
                 type=['png', 'jpg', 'jpeg', 'webp', 'heic'],
                 accept_multiple_files=True,
-                help="Upload PNG, JPG, or JPEG screenshot files"
+                help="Upload PNG, JPG, or JPEG screenshot files",
+                label_visibility="collapsed"
             )
         else:
-            st.info("Select a project above to upload screenshots")
+            st.markdown("""
+            <div class="upload-section">
+                <div style="text-align: center; color: #B3B3B3;">
+                    📂 Select a project above to upload screenshots
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
             uploaded_files = None
         
-        st.subheader("⚡ Processing Mode")
+        st.markdown('<div class="sidebar-header">⚡ Processing Options</div>', unsafe_allow_html=True)
+        
         processing_mode = st.selectbox(
-            "Choose processing speed:",
+            "Choose processing mode:",
             [
                 "⚡ Fast Local Vision (Recommended)",
                 "🔍 Detailed - OpenAI (More detailed, uses API)",
                 "🔍 Detailed - Gemini (More detailed, uses API)"
             ],
-            index=0,  # Default to Fast Local Vision
-            help="Fast Local Vision: OCR + computer vision analysis (no API required). Detailed options: OCR + advanced AI analysis (requires API keys, more expensive)."
+            index=0,
+            help="Fast Local Vision: OCR + computer vision analysis (no API required). Detailed options: OCR + advanced AI analysis (requires API keys, more expensive).",
+            label_visibility="collapsed"
         )
         
-        # Show provider availability
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.caption("✅ Local Vision")
-        with col2:
-            openai_status = "✅" if openai_client else "❌"
-            st.caption(f"{openai_status} OpenAI")
-        with col3:
-            gemini_status = "✅" if gemini_client.is_available() else "❌"
-            st.caption(f"{gemini_status} Gemini")
+        # Show provider availability in a compact card
+        st.markdown("""
+        <div class="processing-stats">
+            <div style="color: #FAFAFA; font-weight: 500; margin-bottom: 0.5rem;">Provider Status</div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+                <span style="color: #00C9A7;">✅ Local Vision</span>""" + f"""
+                <span style="color: {'#00C9A7' if openai_client else '#FF4B4B'};">{'✅' if openai_client else '❌'} OpenAI</span>
+                <span style="color: {'#00C9A7' if gemini_client.is_available() else '#FF4B4B'};">{'✅' if gemini_client.is_available() else '❌'} Gemini</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
         
         if uploaded_files and st.session_state.selected_project_id and st.button("🔄 Process Screenshots", type="primary"):
             process_screenshots(uploaded_files, image_processor, openai_client, gemini_client, local_vision_client, data_manager, processing_mode, st.session_state.selected_project_id)
@@ -189,21 +371,32 @@ def main():
             else:
                 st.info(f"📂 Project '{st.session_state.current_project_name}' is ready. Upload screenshots in the sidebar to start searching.")
     else:
-        # Display sample query examples when no project is selected
-        st.subheader("💡 Example Queries")
-        col1, col2 = st.columns(2)
+        # Modern welcome screen when no project is selected
+        st.markdown("### 💡 Getting Started")
         
-        with col1:
-            st.markdown("**Text-based searches:**")
-            st.code("error message about authentication")
-            st.code("password reset email")
-            st.code("API documentation")
+        # Welcome card
+        st.markdown("""
+        <div class="project-card">
+            <h4 style="color: #FAFAFA; margin-top: 0;">Welcome to Visual Memory Search</h4>
+            <p style="color: #B3B3B3; margin-bottom: 1.5rem;">Create a project and upload screenshots to start searching through your visual memories using natural language.</p>
             
-        with col2:
-            st.markdown("**Visual-based searches:**")
-            st.code("screenshot with blue button")
-            st.code("red error dialog box")
-            st.code("login form with input fields")
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+                <div>
+                    <h5 style="color: #00C9A7; margin-bottom: 1rem;">Text-based Searches</h5>
+                    <div style="background: #262B35; padding: 0.75rem; border-radius: 4px; margin-bottom: 0.5rem; font-family: monospace; font-size: 0.9rem;">error message about authentication</div>
+                    <div style="background: #262B35; padding: 0.75rem; border-radius: 4px; margin-bottom: 0.5rem; font-family: monospace; font-size: 0.9rem;">password reset email</div>
+                    <div style="background: #262B35; padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.9rem;">API documentation</div>
+                </div>
+                
+                <div>
+                    <h5 style="color: #00C9A7; margin-bottom: 1rem;">Visual-based Searches</h5>
+                    <div style="background: #262B35; padding: 0.75rem; border-radius: 4px; margin-bottom: 0.5rem; font-family: monospace; font-size: 0.9rem;">screenshot with blue button</div>
+                    <div style="background: #262B35; padding: 0.75rem; border-radius: 4px; margin-bottom: 0.5rem; font-family: monospace; font-size: 0.9rem;">red error dialog box</div>
+                    <div style="background: #262B35; padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.9rem;">login form with input fields</div>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
 def load_project_data(data_manager: DataManager, project_id: int):
     """Load existing project data into session state"""
@@ -343,17 +536,73 @@ def process_screenshots(uploaded_files: List, image_processor: ImageProcessor,
         st.warning("No files could be processed successfully.")
 
 def search_interface():
-    """Main search interface"""
-    # Search input with automatic search on change
-    query = st.text_input(
-        "Enter your search query:",
-        placeholder="e.g., 'error dialog with red button' or 'login form'",
-        help="Search will automatically update as you type",
-        key="search_query"
-    )
+    """Modern search interface with professional styling"""
     
-    # Search options
-    with st.expander("⚙️ Search Options"):
+    # Project stats header
+    project_data = st.session_state.processed_data
+    if not project_data.empty:
+        total_images = len(project_data)
+        
+        # Statistics display
+        st.markdown("### 📊 Project Overview")
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-value">{total_images}</div>
+                <div class="metric-label">Items in use</div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            avg_text_length = project_data['ocr_text'].str.len().mean() if 'ocr_text' in project_data.columns else 0
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-value">{avg_text_length:.0f}</div>
+                <div class="metric-label">Avg text length</div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col3:
+            processing_modes = project_data['processing_mode'].nunique() if 'processing_mode' in project_data.columns else 1
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-value">{processing_modes}</div>
+                <div class="metric-label">Processing modes</div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col4:
+            recent_uploads = len(project_data[project_data['processed_timestamp'] > pd.Timestamp.now() - pd.Timedelta(days=7)]) if 'processed_timestamp' in project_data.columns else 0
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-value">{recent_uploads}</div>
+                <div class="metric-label">Recent uploads</div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Search interface
+    st.markdown("### 🔍 Search Screenshots")
+    
+    # Search container with modern styling
+    st.markdown('<div class="search-container">', unsafe_allow_html=True)
+    
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        query = st.text_input(
+            "Search query:",
+            placeholder="e.g., 'error dialog with red button' or 'login form'",
+            help="Search will automatically update as you type",
+            key="search_query",
+            label_visibility="collapsed"
+        )
+    
+    with col2:
+        search_button = st.button("🔍 Search", type="primary", use_container_width=True)
+    
+    # Search options in expandable section
+    with st.expander("⚙️ Advanced Search Options", expanded=False):
         col1, col2 = st.columns(2)
         with col1:
             search_mode = st.selectbox(
@@ -363,14 +612,19 @@ def search_interface():
                 key="search_mode"
             )
         with col2:
-            max_results = st.slider("Max Results", 1, 10, 5, key="max_results")
+            max_results = st.slider("Max Results", 1, 20, 10, key="max_results")
     
-    # Automatic search when query is entered
-    if query and query.strip():
-        perform_search(query, search_mode, max_results)
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Automatic search when query is entered or search button is clicked
+    if (query and query.strip()) or search_button:
+        if query and query.strip():
+            perform_search(query, search_mode, max_results)
+        else:
+            st.warning("Please enter a search query")
 
 def perform_search(query: str, search_mode: str, max_results: int):
-    """Perform search and display results"""
+    """Perform search and display results in modern table format"""
     
     with st.spinner("Searching screenshots..."):
         search_engine = SearchEngine()
@@ -383,55 +637,95 @@ def perform_search(query: str, search_mode: str, max_results: int):
         )
     
     if results.empty:
-        st.warning("No matching screenshots found. Try a different query.")
+        st.markdown("""
+        <div class="result-table">
+            <div class="table-header">No Results Found</div>
+            <div style="padding: 2rem; text-align: center; color: #B3B3B3;">
+                No matching screenshots found. Try a different query or search mode.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
         return
     
-    st.subheader(f"🎯 Search Results ({len(results)} matches)")
+    # Results header with modern styling
+    st.markdown(f"### 🎯 Search Results")
+    st.markdown(f'<div style="color: #B3B3B3; margin-bottom: 1rem;">{len(results)} matches found for "{query}"</div>', unsafe_allow_html=True)
     
-    # Display results
+    # Modern table-style results display
+    st.markdown("""
+    <div class="result-table">
+        <div class="table-header">
+            <div style="display: grid; grid-template-columns: 120px 2fr 1fr 1fr 100px 150px; gap: 1rem; align-items: center;">
+                <div>Preview</div>
+                <div>Filename</div>
+                <div>Match Reason</div>
+                <div>Content Preview</div>
+                <div>Confidence</div>
+                <div>Processed</div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Display results in table format
     for idx, row in results.iterrows():
+        # Status indicator based on confidence
+        confidence = row['confidence_score']
+        if confidence >= 80:
+            status_class = "status-active"
+            confidence_class = "confidence-high"
+        elif confidence >= 60:
+            status_class = "status-processing" 
+            confidence_class = "confidence-medium"
+        else:
+            status_class = "status-error"
+            confidence_class = "confidence-low"
+        
+        # Process time formatting
+        try:
+            processed_time = pd.to_datetime(row['processed_timestamp']).strftime('%m/%d/%Y')
+        except:
+            processed_time = "N/A"
+        
+        # Truncate content for preview
+        content_preview = str(row['ocr_text'])[:50] + "..." if len(str(row['ocr_text'])) > 50 else str(row['ocr_text'])
+        match_reason = str(row['match_reason'])[:40] + "..." if len(str(row['match_reason'])) > 40 else str(row['match_reason'])
+        
+        # Create table row
         with st.container():
-            col1, col2 = st.columns([1, 3])
+            col1, col2, col3, col4, col5, col6 = st.columns([120, 200, 150, 150, 100, 150])
             
             with col1:
                 # Display thumbnail
                 try:
                     thumbnail_bytes = base64.b64decode(str(row['thumbnail_b64']))
                     thumbnail_image = Image.open(BytesIO(thumbnail_bytes))
-                    st.image(thumbnail_image, width=150)
+                    st.image(thumbnail_image, width=100)
                 except:
-                    st.write("📷 Preview unavailable")
+                    st.markdown('<div style="text-align: center; color: #B3B3B3; padding: 20px;">📷</div>', unsafe_allow_html=True)
             
             with col2:
-                # File info and confidence
-                st.markdown(f"**📁 {row['filename']}**")
-                
-                # Confidence score with color coding
-                confidence = row['confidence_score']
-                if confidence >= 80:
-                    color = "green"
-                elif confidence >= 60:
-                    color = "orange"
+                st.markdown(f'<div class="status-indicator {status_class}"></div><strong>{row["filename"]}</strong>', unsafe_allow_html=True)
+                dimensions = row.get('image_dimensions', 'Unknown')
+                st.markdown(f'<div style="color: #B3B3B3; font-size: 0.8rem;">{dimensions}</div>', unsafe_allow_html=True)
+            
+            with col3:
+                st.markdown(f'<div style="font-size: 0.9rem;">{match_reason}</div>', unsafe_allow_html=True)
+            
+            with col4:
+                if content_preview.strip():
+                    with st.expander("View Content", expanded=False):
+                        st.text_area("OCR Text", str(row['ocr_text']), height=100, disabled=True, key=f"content_{idx}", label_visibility="collapsed")
+                        if str(row['visual_description']).strip():
+                            st.text_area("Visual Description", str(row['visual_description']), height=100, disabled=True, key=f"visual_{idx}", label_visibility="collapsed")
                 else:
-                    color = "red"
-                
-                st.markdown(f"**Confidence:** :{color}[{confidence:.1f}%]")
-                
-                # Match reasoning
-                st.markdown(f"**Match Reason:** {row['match_reason']}")
-                
-                # Content preview
-                if str(row['ocr_text']).strip():
-                    with st.expander("📝 Text Content"):
-                        st.text_area("OCR Text Content", str(row['ocr_text']), height=100, disabled=True, key=f"text_{idx}", label_visibility="collapsed")
-                
-                if str(row['visual_description']).strip():
-                    with st.expander("👁️ Visual Description"):
-                        st.text_area("Visual Description", str(row['visual_description']), height=100, disabled=True, key=f"visual_{idx}", label_visibility="collapsed")
-                
-                # File metadata
-                processed_time = pd.to_datetime(row['processed_timestamp']).strftime('%Y-%m-%d %H:%M')
-                st.caption(f"Size: {row['image_dimensions']} | Processed: {processed_time}")
+                    st.markdown('<div style="color: #B3B3B3; font-size: 0.8rem;">No text content</div>', unsafe_allow_html=True)
+            
+            with col5:
+                st.markdown(f'<div class="confidence-badge {confidence_class}">{confidence:.0f}%</div>', unsafe_allow_html=True)
+            
+            with col6:
+                st.markdown(f'<div style="font-size: 0.8rem;">{processed_time}</div>', unsafe_allow_html=True)
             
             st.divider()
 
