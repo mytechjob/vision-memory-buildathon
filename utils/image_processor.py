@@ -5,6 +5,10 @@ import numpy as np
 import base64
 from io import BytesIO
 import streamlit as st
+from pillow_heif import register_heif_opener
+
+# Register HEIF opener with PIL
+register_heif_opener()
 
 class ImageProcessor:
     """Handle image processing, OCR, and thumbnail generation"""

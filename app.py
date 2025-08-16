@@ -37,9 +37,9 @@ def main():
         
         uploaded_files = st.file_uploader(
             "Choose screenshot files",
-            type=['png', 'jpg', 'jpeg', 'webp'],
+            type=['png', 'jpg', 'jpeg', 'webp', 'heic'],
             accept_multiple_files=True,
-            help="Upload PNG, JPG, JPEG, or WebP screenshot files"
+            help="Upload PNG, JPG, JPEG, WebP, or HEIC screenshot files"
         )
         
         if uploaded_files and st.button("🔄 Process Screenshots", type="primary"):
