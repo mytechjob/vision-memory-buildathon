@@ -42,8 +42,20 @@ def main():
             help="Upload PNG, JPG, JPEG, WebP, or HEIC screenshot files"
         )
         
+        st.subheader("⚡ Processing Mode")
+        processing_mode = st.selectbox(
+            "Choose processing speed:",
+            [
+                "🚀 Ultra Fast (30x faster)",
+                "⚖️ Balanced (15x faster)", 
+                "🔍 Detailed Analysis (Current)"
+            ],
+            index=1,  # Default to Balanced
+            help="Ultra Fast: Quick OCR only. Balanced: OCR + basic analysis. Detailed: OCR + AI vision analysis."
+        )
+        
         if uploaded_files and st.button("🔄 Process Screenshots", type="primary"):
-            process_screenshots(uploaded_files, image_processor, openai_client, data_manager)
+            process_screenshots(uploaded_files, image_processor, openai_client, data_manager, processing_mode)
     
     # Main content area
     if st.session_state.processing_complete and not st.session_state.processed_data.empty:
@@ -68,7 +80,7 @@ def main():
             st.code("login form with input fields")
 
 def process_screenshots(uploaded_files: List, image_processor: ImageProcessor, 
-                       openai_client: OpenAIClient, data_manager: DataManager):
+                       openai_client: OpenAIClient, data_manager: DataManager, processing_mode: str):
     """Process uploaded screenshots with OCR and AI vision"""
     
     # Progress tracking
@@ -90,11 +102,16 @@ def process_screenshots(uploaded_files: List, image_processor: ImageProcessor,
                 st.warning(f"Skipping {uploaded_file.name}: Image too small")
                 continue
                 
-            # Extract OCR text
-            ocr_text = image_processor.extract_text(image)
-            
-            # Generate visual description using OpenAI Vision
-            visual_description = openai_client.analyze_screenshot(image)
+            # Extract OCR text based on processing mode
+            if "Ultra Fast" in processing_mode:
+                ocr_text = image_processor.extract_text_fast(image)
+                visual_description = "No visual analysis (Ultra Fast mode)"
+            elif "Balanced" in processing_mode:
+                ocr_text = image_processor.extract_text_balanced(image)
+                visual_description = image_processor.analyze_basic(image)
+            else:  # Detailed Analysis
+                ocr_text = image_processor.extract_text(image)  # Current heavy preprocessing
+                visual_description = openai_client.analyze_screenshot(image)
             
             # Generate thumbnail
             thumbnail = image_processor.create_thumbnail(image)

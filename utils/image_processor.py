@@ -17,7 +17,7 @@ class ImageProcessor:
         self.thumbnail_size = (200, 200)
         
     def extract_text(self, image: Image.Image) -> str:
-        """Extract text from image using OCR"""
+        """Extract text from image using OCR with heavy preprocessing (detailed mode)"""
         try:
             # Convert PIL image to numpy array for OpenCV processing
             img_array = np.array(image)
@@ -52,6 +52,81 @@ class ImageProcessor:
         except Exception as e:
             st.warning(f"OCR extraction failed: {str(e)}")
             return ""
+    
+    def extract_text_fast(self, image: Image.Image) -> str:
+        """Ultra fast OCR extraction with minimal processing"""
+        try:
+            config = r'--oem 3 --psm 6'
+            text = pytesseract.image_to_string(image, config=config)
+            return self._clean_text(text)
+        except Exception as e:
+            st.warning(f"Fast OCR extraction failed: {str(e)}")
+            return ""
+    
+    def extract_text_balanced(self, image: Image.Image) -> str:
+        """Balanced OCR with light preprocessing"""
+        try:
+            # Convert to numpy array
+            img_array = np.array(image)
+            
+            # Convert to grayscale if needed
+            if len(img_array.shape) == 3:
+                gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
+            else:
+                gray = img_array
+            
+            # Light preprocessing - just contrast enhancement
+            enhanced = cv2.convertScaleAbs(gray, alpha=1.1, beta=10)
+            
+            # Convert back to PIL Image
+            processed_image = Image.fromarray(enhanced)
+            
+            config = r'--oem 3 --psm 6'
+            text = pytesseract.image_to_string(processed_image, config=config)
+            return self._clean_text(text)
+        except Exception as e:
+            st.warning(f"Balanced OCR extraction failed: {str(e)}")
+            return ""
+    
+    def analyze_basic(self, image: Image.Image) -> str:
+        """Basic local image analysis without AI"""
+        try:
+            width, height = image.size
+            
+            # Convert to RGB if needed
+            if image.mode != 'RGB':
+                image = image.convert('RGB')
+            
+            # Get basic color information
+            colors = image.getcolors(maxcolors=256*256*256)
+            if colors:
+                dominant_color = max(colors, key=lambda item: item[0])
+                color_count = len(colors)
+                
+                # Simple color analysis
+                r, g, b = dominant_color[1]
+                if r > 200 and g < 100 and b < 100:
+                    color_desc = "predominantly red"
+                elif g > 200 and r < 100 and b < 100:
+                    color_desc = "predominantly green"
+                elif b > 200 and r < 100 and g < 100:
+                    color_desc = "predominantly blue"
+                elif r > 150 and g > 150 and b > 150:
+                    color_desc = "light colored"
+                elif r < 100 and g < 100 and b < 100:
+                    color_desc = "dark colored"
+                else:
+                    color_desc = "mixed colors"
+            else:
+                color_count = 0
+                color_desc = "unknown colors"
+            
+            description = f"Screenshot with dimensions {width}x{height}, {color_desc}, {color_count} distinct colors. Basic UI analysis."
+            return description
+            
+        except Exception as e:
+            st.warning(f"Basic analysis failed: {str(e)}")
+            return "Basic image analysis - screenshot processed successfully"
     
     def _clean_text(self, text: str) -> str:
         """Clean and normalize extracted text"""
