@@ -355,11 +355,12 @@ def search_interface():
     """Main search interface"""
     st.header(f"🔍 Search: {st.session_state.current_project_name}")
     
-    # Search input
+    # Search input with automatic search on change
     query = st.text_input(
         "Enter your search query:",
         placeholder="e.g., 'error dialog with red button' or 'login form'",
-        help="You can search for text content, visual elements, or combinations of both"
+        help="Search will automatically update as you type",
+        key="search_query"
     )
     
     # Search options
@@ -369,12 +370,14 @@ def search_interface():
             search_mode = st.selectbox(
                 "Search Mode",
                 ["Combined (Text + Visual)", "Text Only", "Visual Only"],
-                help="Choose how to search through your screenshots"
+                help="Choose how to search through your screenshots",
+                key="search_mode"
             )
         with col2:
-            max_results = st.slider("Max Results", 1, 10, 5)
+            max_results = st.slider("Max Results", 1, 10, 5, key="max_results")
     
-    if query and st.button("🔍 Search", type="primary"):
+    # Automatic search when query is entered
+    if query and query.strip():
         perform_search(query, search_mode, max_results)
 
 def perform_search(query: str, search_mode: str, max_results: int):
