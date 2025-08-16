@@ -109,6 +109,18 @@ def vision_openai_simple(image):
     except Exception as e:
         return f"OpenAI analysis failed: {e}"
 
+def vision_gemini_simple(image):
+    """Simple Gemini vision analysis"""
+    try:
+        from gemini_client import GeminiClient
+        client = GeminiClient()
+        if client.is_available():
+            return client.analyze_screenshot(image)
+        else:
+            return "Gemini API key not configured"
+    except Exception as e:
+        return f"Gemini analysis failed: {e}"
+
 def vision_basic_analysis(image):
     """Basic local image analysis without AI"""
     # Simple color and size analysis
@@ -177,7 +189,8 @@ def run_processing_tests(image_path):
     vision_approaches = [
         ("No Analysis", vision_no_analysis),
         ("Basic Local Analysis", vision_basic_analysis),
-        ("OpenAI Vision (Current)", vision_openai_simple),
+        ("OpenAI Vision", vision_openai_simple),
+        ("Gemini Vision (Flash)", vision_gemini_simple),
     ]
     
     vision_results = {}
@@ -206,11 +219,35 @@ def run_processing_tests(image_path):
     
     # Find current approach time
     current_ocr_time = ocr_results.get("Heavy Preprocessing OCR (Current)", (None, 0))[1]
-    current_vision_time = vision_results.get("OpenAI Vision (Current)", (None, 0))[1]
+    openai_vision_time = vision_results.get("OpenAI Vision", (None, 0))[1]
+    gemini_vision_time = vision_results.get("Gemini Vision (Flash)", (None, 0))[1]
+    
+    # Use the faster of the two AI vision approaches
+    if openai_vision_time > 0 and gemini_vision_time > 0:
+        current_vision_time = min(openai_vision_time, gemini_vision_time)
+        faster_ai = "Gemini" if gemini_vision_time < openai_vision_time else "OpenAI"
+    elif openai_vision_time > 0:
+        current_vision_time = openai_vision_time
+        faster_ai = "OpenAI"
+    elif gemini_vision_time > 0:
+        current_vision_time = gemini_vision_time
+        faster_ai = "Gemini"
+    else:
+        current_vision_time = 0
+        faster_ai = "None"
+    
     total_current = current_ocr_time + current_vision_time
     
     print(f"Fastest Total:  {total_fastest:.2f}s")
-    print(f"Current Total:  {total_current:.2f}s")
+    print(f"Best AI Total:  {total_current:.2f}s ({faster_ai})")
+    
+    if openai_vision_time > 0 and gemini_vision_time > 0:
+        if gemini_vision_time < openai_vision_time:
+            speedup_ai = openai_vision_time / gemini_vision_time
+            print(f"Gemini vs OpenAI: {speedup_ai:.1f}x faster")
+        else:
+            speedup_ai = gemini_vision_time / openai_vision_time
+            print(f"OpenAI vs Gemini: {speedup_ai:.1f}x faster")
     
     if total_current > 0:
         speedup = total_current / total_fastest
@@ -270,7 +307,8 @@ def main():
     print("-" * 20)
     print("• For fastest processing: Use 'Fast Config OCR' + 'No Analysis'")
     print("• For balanced speed/quality: Use 'Light Preprocessing OCR' + 'Basic Local Analysis'")
-    print("• For best quality: Current approach (but slowest)")
+    print("• For best AI quality: Use 'Heavy Preprocessing OCR' + faster AI vision (OpenAI vs Gemini)")
+    print("• Gemini is typically faster and cheaper than OpenAI for vision tasks")
     print("• Consider making vision analysis optional for users")
     print("• Consider processing images in background/async")
 

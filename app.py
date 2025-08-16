@@ -12,6 +12,7 @@ from io import BytesIO
 from utils.image_processor import ImageProcessor
 from utils.search_engine import SearchEngine
 from utils.openai_client import OpenAIClient
+from utils.gemini_client import GeminiClient
 from utils.data_manager import DataManager
 
 # Initialize session state
@@ -29,6 +30,7 @@ def main():
     # Initialize components
     image_processor = ImageProcessor()
     openai_client = OpenAIClient()
+    gemini_client = GeminiClient()
     data_manager = DataManager()
     
     # Sidebar for file upload and processing
@@ -48,14 +50,24 @@ def main():
             [
                 "🚀 Ultra Fast (30x faster)",
                 "⚖️ Balanced (15x faster)", 
-                "🔍 Detailed Analysis (Current)"
+                "🔍 Detailed - OpenAI (Slower)",
+                "🔍 Detailed - Gemini (Faster)"
             ],
             index=1,  # Default to Balanced
             help="Ultra Fast: Quick OCR only. Balanced: OCR + basic analysis. Detailed: OCR + AI vision analysis."
         )
         
+        # Show AI provider availability
+        col1, col2 = st.columns(2)
+        with col1:
+            openai_status = "✅" if openai_client else "❌"
+            st.caption(f"{openai_status} OpenAI")
+        with col2:
+            gemini_status = "✅" if gemini_client.is_available() else "❌"
+            st.caption(f"{gemini_status} Gemini")
+        
         if uploaded_files and st.button("🔄 Process Screenshots", type="primary"):
-            process_screenshots(uploaded_files, image_processor, openai_client, data_manager, processing_mode)
+            process_screenshots(uploaded_files, image_processor, openai_client, gemini_client, data_manager, processing_mode)
     
     # Main content area
     if st.session_state.processing_complete and not st.session_state.processed_data.empty:
@@ -80,7 +92,7 @@ def main():
             st.code("login form with input fields")
 
 def process_screenshots(uploaded_files: List, image_processor: ImageProcessor, 
-                       openai_client: OpenAIClient, data_manager: DataManager, processing_mode: str):
+                       openai_client: OpenAIClient, gemini_client: GeminiClient, data_manager: DataManager, processing_mode: str):
     """Process uploaded screenshots with OCR and AI vision"""
     
     # Progress tracking
@@ -102,16 +114,27 @@ def process_screenshots(uploaded_files: List, image_processor: ImageProcessor,
                 st.warning(f"Skipping {uploaded_file.name}: Image too small")
                 continue
                 
-            # Extract OCR text based on processing mode
+            # Extract OCR text and visual description based on processing mode
             if "Ultra Fast" in processing_mode:
                 ocr_text = image_processor.extract_text_fast(image)
                 visual_description = "No visual analysis (Ultra Fast mode)"
             elif "Balanced" in processing_mode:
                 ocr_text = image_processor.extract_text_balanced(image)
                 visual_description = image_processor.analyze_basic(image)
-            else:  # Detailed Analysis
+            elif "OpenAI" in processing_mode:
                 ocr_text = image_processor.extract_text(image)  # Current heavy preprocessing
                 visual_description = openai_client.analyze_screenshot(image)
+            elif "Gemini" in processing_mode:
+                ocr_text = image_processor.extract_text(image)  # Current heavy preprocessing
+                if gemini_client.is_available():
+                    visual_description = gemini_client.analyze_screenshot(image)
+                else:
+                    visual_description = "Gemini API key not configured - using basic analysis"
+                    visual_description = image_processor.analyze_basic(image)
+            else:
+                # Fallback
+                ocr_text = image_processor.extract_text_balanced(image)
+                visual_description = image_processor.analyze_basic(image)
             
             # Generate thumbnail
             thumbnail = image_processor.create_thumbnail(image)
