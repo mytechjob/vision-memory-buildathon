@@ -35,7 +35,7 @@ class ProcessedImage(Base):
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     project_id = Column(String, ForeignKey('projects.id'), nullable=False)
     filename = Column(String, nullable=False)
-    file_hash = Column(String, nullable=False, unique=True)  # To avoid duplicates
+    file_hash = Column(String, nullable=False)  # File hash for reference
     file_size = Column(Integer)
     image_dimensions = Column(String)
     original_image = Column(LargeBinary)  # Store original image
@@ -192,15 +192,9 @@ class DataManager:
             image_bytes = self._image_to_bytes(image)
             file_hash = self._calculate_file_hash(image_bytes)
             
-            # Check if image already exists
-            exists, existing_filename = self.image_exists(image_bytes)
-            if exists:
-                st.info(f"Image {filename} already exists as {existing_filename}. Skipping.")
-                return True
-            
             session = self.Session()
             
-            # Create new processed image record
+            # Create new processed image record (allowing duplicates)
             processed_image = ProcessedImage(
                 project_id=project_id,
                 filename=filename,

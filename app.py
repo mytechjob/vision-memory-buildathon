@@ -209,8 +209,6 @@ def process_screenshots(uploaded_files: List, image_processor: ImageProcessor,
     processed_data = []
     total_files = len(uploaded_files)
     
-    skipped_existing = 0
-    
     for idx, uploaded_file in enumerate(uploaded_files):
         try:
             status_text.text(f"Processing {uploaded_file.name}... ({idx + 1}/{total_files})")
@@ -221,17 +219,6 @@ def process_screenshots(uploaded_files: List, image_processor: ImageProcessor,
             # Skip if image is too small or corrupted
             if image.size[0] < 50 or image.size[1] < 50:
                 st.warning(f"Skipping {uploaded_file.name}: Image too small")
-                continue
-            
-            # Check if image already exists in database
-            uploaded_file.seek(0)  # Reset file pointer
-            image_bytes = uploaded_file.read()
-            uploaded_file.seek(0)  # Reset again for potential reuse
-            
-            exists, existing_filename = data_manager.image_exists(image_bytes)
-            if exists:
-                st.info(f"📷 {uploaded_file.name} already exists as {existing_filename}. Skipping.")
-                skipped_existing += 1
                 continue
                 
             # Extract OCR text and visual description based on processing mode
@@ -288,7 +275,7 @@ def process_screenshots(uploaded_files: List, image_processor: ImageProcessor,
                     'processing_mode': processing_mode
                 })
             else:
-                st.warning(f"Failed to save {uploaded_file.name} to database")
+                st.error(f"Failed to save {uploaded_file.name} to database")
             
         except Exception as e:
             st.error(f"Error processing {uploaded_file.name}: {str(e)}")
@@ -304,20 +291,18 @@ def process_screenshots(uploaded_files: List, image_processor: ImageProcessor,
     total_processed = len(processed_data)
     total_uploaded = len(uploaded_files)
     
-    if total_processed > 0 or skipped_existing > 0:
+    if total_processed > 0:
         status_text.success(f"✅ Processing complete!")
         progress_bar.progress(1.0)
         
         # Show processing summary
         st.subheader("📊 Processing Summary")
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3 = st.columns(3)
         with col1:
             st.metric("Total Uploaded", total_uploaded)
         with col2:
-            st.metric("Newly Processed", total_processed)
+            st.metric("Successfully Processed", total_processed)
         with col3:
-            st.metric("Already Existed", skipped_existing)
-        with col4:
             if total_processed > 0:
                 temp_df = pd.DataFrame(processed_data)
                 avg_text_length = temp_df['ocr_text'].str.len().mean()
@@ -325,13 +310,10 @@ def process_screenshots(uploaded_files: List, image_processor: ImageProcessor,
             else:
                 st.metric("Avg Text Length", "N/A")
         
-        if skipped_existing > 0:
-            st.info(f"ℹ️ {skipped_existing} images were already in the database and were skipped to avoid duplicates.")
-        
         time.sleep(1)
         st.rerun()
     else:
-        st.warning("No new files could be processed. All uploaded files either already exist or failed processing.")
+        st.warning("No files could be processed successfully.")
 
 def search_interface():
     """Main search interface"""
