@@ -535,22 +535,21 @@ def process_screenshots(uploaded_files: List, image_processor: ImageProcessor,
 def search_interface():
     """Modern search interface with professional styling"""
     
-    # Search interface
-    st.markdown("### 🔍 Search Screenshots")
-    
     # Search container with modern styling
     st.markdown('<div class="search-container">', unsafe_allow_html=True)
     
+    # Main prominent search area
+    query = st.text_area(
+        "Search your screenshots:",
+        placeholder="Describe what you're looking for...\n\nExamples:\n• 'error dialog with red button'\n• 'login form with username field'\n• 'settings page with dark theme'\n• 'API documentation about authentication'",
+        height=120,
+        help="Use natural language to describe what you're looking for. Search works with both text content and visual elements.",
+        key="search_query"
+    )
+    
     col1, col2 = st.columns([3, 1])
     with col1:
-        query = st.text_input(
-            "Search query:",
-            placeholder="e.g., 'error dialog with red button' or 'login form'",
-            help="Search will automatically update as you type",
-            key="search_query",
-            label_visibility="collapsed"
-        )
-    
+        st.markdown("")  # Empty space for alignment
     with col2:
         search_button = st.button("🔍 Search", type="primary", use_container_width=True)
     
