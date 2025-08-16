@@ -178,7 +178,7 @@ def main():
             st.code("red error dialog box")
             st.code("login form with input fields")
 
-def load_project_data(data_manager: DataManager, project_id: str):
+def load_project_data(data_manager: DataManager, project_id: int):
     """Load existing project data into session state"""
     try:
         project_data = data_manager.get_project_images(project_id)
@@ -199,7 +199,7 @@ def load_project_data(data_manager: DataManager, project_id: str):
 
 def process_screenshots(uploaded_files: List, image_processor: ImageProcessor, 
                        openai_client: OpenAIClient, gemini_client: GeminiClient, local_vision_client: LocalVisionClient, 
-                       data_manager: DataManager, processing_mode: str, project_id: str):
+                       data_manager: DataManager, processing_mode: str, project_id: int):
     """Process uploaded screenshots with OCR and AI vision"""
     
     # Progress tracking

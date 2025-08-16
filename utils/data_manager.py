@@ -8,7 +8,6 @@ import psycopg2
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, LargeBinary, Text, Float, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
-from sqlalchemy.dialects.postgresql import UUID
 import uuid
 import base64
 from PIL import Image
@@ -20,7 +19,7 @@ Base = declarative_base()
 class Project(Base):
     __tablename__ = 'projects'
     
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False)
     description = Column(Text)
     created_at = Column(DateTime, default=datetime.now)
@@ -32,10 +31,10 @@ class Project(Base):
 class ProcessedImage(Base):
     __tablename__ = 'processed_images'
     
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    project_id = Column(String, ForeignKey('projects.id'), nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey('projects.id'), nullable=False)
     filename = Column(String, nullable=False)
-    file_hash = Column(String, nullable=False)  # File hash for reference
+    file_hash = Column(String, nullable=False)  # File hash for reference (no unique constraint)
     file_size = Column(Integer)
     image_dimensions = Column(String)
     original_image = Column(LargeBinary)  # Store original image
@@ -86,7 +85,7 @@ class DataManager:
         image.save(img_byte_arr, format='JPEG', quality=85)
         return img_byte_arr.getvalue()
     
-    def create_project(self, name: str, description: str = "") -> Optional[str]:
+    def create_project(self, name: str, description: str = "") -> Optional[int]:
         """Create a new project and return its ID"""
         if not self.Session:
             return None
@@ -127,7 +126,7 @@ class DataManager:
             st.error(f"Failed to get projects: {str(e)}")
             return []
     
-    def get_project_images(self, project_id: str) -> pd.DataFrame:
+    def get_project_images(self, project_id: int) -> pd.DataFrame:
         """Get all images for a specific project"""
         if not self.Session:
             return pd.DataFrame()
@@ -180,7 +179,7 @@ class DataManager:
             st.warning(f"Failed to check image existence: {str(e)}")
             return False, None
     
-    def save_processed_image(self, project_id: str, filename: str, image: Image.Image, 
+    def save_processed_image(self, project_id: int, filename: str, image: Image.Image, 
                            ocr_text: str, visual_description: str, thumbnail_b64: str,
                            processing_mode: str, file_size: int) -> bool:
         """Save a single processed image to database"""
@@ -222,7 +221,7 @@ class DataManager:
             st.error(f"Failed to save processed image: {str(e)}")
             return False
     
-    def save_processed_data(self, data: pd.DataFrame, project_id: str = None) -> bool:
+    def save_processed_data(self, data: pd.DataFrame, project_id: int = None) -> bool:
         """Save processed screenshot data (legacy method for compatibility)"""
         try:
             # Convert dataframe to JSON-serializable format
@@ -366,7 +365,7 @@ class DataManager:
             st.error(f"Failed to clear session data: {str(e)}")
             return False
     
-    def delete_project(self, project_id: str) -> bool:
+    def delete_project(self, project_id: int) -> bool:
         """Delete a project and all its images"""
         if not self.Session:
             return False
