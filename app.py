@@ -175,9 +175,6 @@ def main():
     # Get existing projects
     projects = data_manager.get_projects()
     
-    # Project management in main area
-    st.markdown("### 📂 Project Management")
-    
     # Set default selection to first project if none selected and projects exist
     if not st.session_state.selected_project_id and projects:
         st.session_state.selected_project_id = projects[0]['id']
@@ -222,7 +219,7 @@ def main():
     
     with col2:
         if projects and st.session_state.selected_project_id:
-            if st.button("Delete Project", type="secondary", help="Delete selected project"):
+            if st.button("🗑️", type="secondary", help="Delete selected project"):
                 # Find project to delete
                 project_to_delete = next((p for p in projects if p['id'] == st.session_state.selected_project_id), None)
                 if project_to_delete:
