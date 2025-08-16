@@ -1,0 +1,140 @@
+# Visual Memory Search App - Development Prompt
+
+## Project Overview
+Create a Visual Memory Search application that allows users to search through their screenshot history using natural language queries. The app should understand both textual content (via OCR) and visual elements within screenshots, returning relevant matches with confidence scores.
+
+## Core Requirements
+
+### 1. Screenshot Processing
+- **Input**: Accept a folder/directory of screenshot images
+- **Supported Formats**: PNG, JPG, JPEG, WebP
+- **Batch Processing**: Handle multiple screenshots efficiently
+- **Error Handling**: Gracefully handle corrupted or unsupported files
+
+### 2. Content Extraction
+- **OCR Text Extraction**: 
+  - Extract all readable text from screenshots
+  - Preserve text positioning and context when possible
+  - Handle various fonts, sizes, and text orientations
+  - Clean and normalize extracted text
+  
+- **Visual Description Generation**:
+  - Identify UI elements (buttons, forms, menus, dialogs)
+  - Describe colors, shapes, and layout patterns
+  - Recognize common interface components
+  - Generate semantic descriptions of visual content
+
+### 3. Search Functionality
+- **Natural Language Queries**: Accept human-readable search terms
+- **Dual Search Capability**:
+  - Text-based searches: "error message about auth", "login failed"
+  - Visual-based searches: "screenshot with blue button", "red error dialog"
+  - Combined searches: "green submit button with text 'Continue'"
+
+### 4. Ranking and Results
+- **Top 5 Results**: Return the 5 most relevant matches
+- **Confidence Scores**: Provide numerical confidence (0-100%) for each result
+- **Result Details**: Include filename, match reason, and relevant excerpts
+- **Thumbnail Preview**: Show small preview of matched screenshots
+
+## Technical Implementation Suggestions
+
+### Architecture
+```
+Screenshot Folder → Processing Pipeline → Search Index → Query Engine → Results
+```
+
+### Key Components
+1. **File Handler**: Scan and validate screenshot files
+2. **OCR Engine**: Text extraction (consider Tesseract.js for web, pytesseract for Python)
+3. **Vision Model**: Visual description generation (OpenAI Vision, Google Vision API, or local models)
+4. **Search Index**: Store processed content with metadata
+5. **Query Parser**: Interpret natural language searches
+6. **Ranking Algorithm**: Score and rank matches
+7. **Results Formatter**: Present results with confidence scores
+
+### Data Structure
+```json
+{
+  "filename": "screenshot_001.png",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "ocr_text": "extracted text content...",
+  "visual_description": "interface with blue buttons and login form...",
+  "ui_elements": ["button", "input_field", "dialog"],
+  "colors": ["blue", "white", "gray"],
+  "text_snippets": ["Login", "Password", "Continue"]
+}
+```
+
+## User Interface Requirements
+
+### Input Interface
+- File/folder selection for screenshots
+- Processing progress indicator
+- Search query input field
+- Advanced search options (date range, file type filters)
+
+### Results Display
+- Grid or list view of matching screenshots
+- Confidence score visualization
+- Highlighted matching content
+- Click to view full-size screenshot
+- Export/share functionality for results
+
+## Search Query Examples to Handle
+
+### Text-Based Queries
+- "error message about authentication"
+- "password reset email"
+- "API documentation"
+- "database connection failed"
+- "user profile settings"
+
+### Visual-Based Queries
+- "screenshot with blue button"
+- "red error dialog box"
+- "login form with two input fields"
+- "navigation menu on the left side"
+- "dark theme interface"
+
+### Combined Queries
+- "green submit button saying 'Create Account'"
+- "error dialog with red X icon"
+- "settings page with toggle switches"
+- "dashboard with graphs and charts"
+
+## Performance Considerations
+- **Indexing**: Pre-process and index content for faster searches
+- **Caching**: Cache OCR and visual descriptions
+- **Batch Processing**: Process multiple screenshots in parallel
+- **Memory Management**: Handle large screenshot collections efficiently
+- **Search Speed**: Return results within 2-3 seconds
+
+## Success Metrics
+- **Accuracy**: Relevant results in top 5 matches >80% of the time
+- **Speed**: Search results returned in <3 seconds
+- **Coverage**: Successfully extract content from >95% of screenshots
+- **User Satisfaction**: Intuitive interface with clear confidence indicators
+
+## Optional Advanced Features
+- **Similar Image Search**: Find visually similar screenshots
+- **Auto-tagging**: Automatically categorize screenshots
+- **Search History**: Remember and suggest previous queries
+- **Bulk Operations**: Delete, organize, or export multiple results
+- **API Integration**: Webhook or API for programmatic access
+
+## Development Approach
+1. Start with basic file handling and OCR extraction
+2. Implement simple text-based search
+3. Add visual description generation
+4. Create search ranking algorithm
+5. Build user interface
+6. Add advanced features and optimizations
+7. Test with diverse screenshot collections
+
+## Testing Strategy
+- Create test dataset with varied screenshot types
+- Test edge cases (low quality images, unusual layouts)
+- Validate search accuracy across different query types
+- Performance testing with large screenshot collections
+- User acceptance testing with real-world scenarios
