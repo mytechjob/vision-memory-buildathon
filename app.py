@@ -94,15 +94,6 @@ def main():
                         st.session_state.current_project_name = None
                         st.rerun()
     
-    # Show selected project info
-    if st.session_state.selected_project_id and projects:
-        selected_project = next((p for p in projects if p['id'] == st.session_state.selected_project_id), None)
-        if selected_project:
-            with st.expander("📋 Project Details", expanded=False):
-                st.write(f"**Description:** {selected_project['description'] or 'No description'}")
-                st.write(f"**Created:** {selected_project['created_at'].strftime('%Y-%m-%d')}")
-                st.write(f"**Images:** {selected_project['image_count']}")
-    
     st.divider()
     
     # Sidebar for project creation and file upload
@@ -353,8 +344,6 @@ def process_screenshots(uploaded_files: List, image_processor: ImageProcessor,
 
 def search_interface():
     """Main search interface"""
-    st.header(f"🔍 Search: {st.session_state.current_project_name}")
-    
     # Search input with automatic search on change
     query = st.text_input(
         "Enter your search query:",
