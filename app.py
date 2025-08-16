@@ -108,19 +108,34 @@ def main():
     # Sidebar for project creation and file upload
     with st.sidebar:
         # Project Creation Section
-        st.header("➕ Create New Project")
+        if st.button("➕ New Project", type="primary", use_container_width=True):
+            # Toggle project creation form visibility
+            if 'show_project_form' not in st.session_state:
+                st.session_state.show_project_form = False
+            st.session_state.show_project_form = not st.session_state.show_project_form
+        
+        # Show project creation form when button is clicked
+        if st.session_state.get('show_project_form', False):
+            st.subheader("Create New Project")
         
         new_project_name = st.text_input("Project Name:", placeholder="My Screenshots")
-        new_project_desc = st.text_area("Description (optional):", placeholder="Brief description of this project...")
-        
-        if st.button("Create Project", type="primary", disabled=not new_project_name.strip()):
-            project_id = data_manager.create_project(new_project_name.strip(), new_project_desc.strip())
-            if project_id:
-                st.session_state.selected_project_id = project_id
-                st.session_state.current_project_name = new_project_name.strip()
-                st.success(f"Created project: {new_project_name}")
-                time.sleep(1)
-                st.rerun()
+            new_project_desc = st.text_area("Description (optional):", placeholder="Brief description of this project...")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("Create", type="primary", disabled=not new_project_name.strip()):
+                    project_id = data_manager.create_project(new_project_name.strip(), new_project_desc.strip())
+                    if project_id:
+                        st.session_state.selected_project_id = project_id
+                        st.session_state.current_project_name = new_project_name.strip()
+                        st.session_state.show_project_form = False  # Hide form after creation
+                        st.success(f"Created project: {new_project_name}")
+                        time.sleep(1)
+                        st.rerun()
+            with col2:
+                if st.button("Cancel"):
+                    st.session_state.show_project_form = False
+                    st.rerun()
         
         st.divider()
         
