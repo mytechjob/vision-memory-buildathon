@@ -538,50 +538,6 @@ def process_screenshots(uploaded_files: List, image_processor: ImageProcessor,
 def search_interface():
     """Modern search interface with professional styling"""
     
-    # Project stats header
-    project_data = st.session_state.processed_data
-    if not project_data.empty:
-        total_images = len(project_data)
-        
-        # Statistics display
-        st.markdown("### 📊 Project Overview")
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            st.markdown(f"""
-            <div class="metric-card">
-                <div class="metric-value">{total_images}</div>
-                <div class="metric-label">Items in use</div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        with col2:
-            avg_text_length = project_data['ocr_text'].str.len().mean() if 'ocr_text' in project_data.columns else 0
-            st.markdown(f"""
-            <div class="metric-card">
-                <div class="metric-value">{avg_text_length:.0f}</div>
-                <div class="metric-label">Avg text length</div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        with col3:
-            processing_modes = project_data['processing_mode'].nunique() if 'processing_mode' in project_data.columns else 1
-            st.markdown(f"""
-            <div class="metric-card">
-                <div class="metric-value">{processing_modes}</div>
-                <div class="metric-label">Processing modes</div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        with col4:
-            recent_uploads = len(project_data[project_data['processed_timestamp'] > pd.Timestamp.now() - pd.Timedelta(days=7)]) if 'processed_timestamp' in project_data.columns else 0
-            st.markdown(f"""
-            <div class="metric-card">
-                <div class="metric-value">{recent_uploads}</div>
-                <div class="metric-label">Recent uploads</div>
-            </div>
-            """, unsafe_allow_html=True)
-    
     # Search interface
     st.markdown("### 🔍 Search Screenshots")
     
