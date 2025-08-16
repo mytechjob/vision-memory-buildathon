@@ -117,8 +117,8 @@ def main():
         # Show project creation form when button is clicked
         if st.session_state.get('show_project_form', False):
             st.subheader("Create New Project")
-        
-        new_project_name = st.text_input("Project Name:", placeholder="My Screenshots")
+            
+            new_project_name = st.text_input("Project Name:", placeholder="My Screenshots")
             new_project_desc = st.text_area("Description (optional):", placeholder="Brief description of this project...")
             
             col1, col2 = st.columns(2)
