@@ -36,6 +36,7 @@ class SearchEngine:
             
             search_index = {
                 'tfidf_matrix': tfidf_matrix,
+                'tfidf_vectorizer': self.tfidf_vectorizer,
                 'combined_content': combined_content,
                 'feature_names': self.tfidf_vectorizer.get_feature_names_out()
             }
@@ -85,9 +86,12 @@ class SearchEngine:
         tfidf_scores = np.zeros(len(data))
         
         try:
-            # TF-IDF similarity
-            if search_index.get('tfidf_matrix') is not None:
-                query_vector = self.tfidf_vectorizer.transform([query])
+            # TF-IDF similarity using the fitted vectorizer from the index
+            if (search_index.get('tfidf_matrix') is not None and 
+                search_index.get('tfidf_vectorizer') is not None):
+                
+                fitted_vectorizer = search_index['tfidf_vectorizer']
+                query_vector = fitted_vectorizer.transform([query])
                 tfidf_similarities = cosine_similarity(query_vector, search_index['tfidf_matrix']).flatten()
                 tfidf_scores = tfidf_similarities
         except Exception as e:
