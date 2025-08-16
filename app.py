@@ -43,21 +43,19 @@ def main():
             "Choose screenshot files",
             type=['png', 'jpg', 'jpeg', 'webp', 'heic'],
             accept_multiple_files=True,
-            help="Upload PNG, JPG, JPEG, WebP, or HEIC screenshot files"
+            help="Upload PNG, JPG, or JPEG screenshot files"
         )
         
         st.subheader("⚡ Processing Mode")
         processing_mode = st.selectbox(
             "Choose processing speed:",
             [
-                "🚀 Ultra Fast (OCR only)",
                 "⚡ Fast Local Vision (Recommended)",
-                "⚖️ Balanced (Basic analysis)", 
-                "🔍 Detailed - OpenAI (API)",
-                "🔍 Detailed - Gemini (API)"
+                "🔍 Detailed - OpenAI (More detailed, uses API)",
+                "🔍 Detailed - Gemini (More detailed, uses API)"
             ],
-            index=1,  # Default to Fast Local Vision
-            help="Ultra Fast: Quick OCR only. Fast Local Vision: OCR + fast computer vision analysis (no API). Balanced: OCR + basic analysis. Detailed: OCR + AI API analysis."
+            index=0,  # Default to Fast Local Vision
+            help="Fast Local Vision: OCR + computer vision analysis (no API required). Detailed options: OCR + advanced AI analysis (requires API keys, more expensive)."
         )
         
         # Show provider availability
