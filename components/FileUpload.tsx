@@ -2,7 +2,11 @@ import { useState, useRef } from 'react'
 import { useProject } from '@/contexts/ProjectContext'
 import { uploadApi, projectApi } from '@/utils/api'
 
-export default function FileUpload() {
+interface FileUploadProps {
+  onImagesProcessed?: () => void
+}
+
+export default function FileUpload({ onImagesProcessed }: FileUploadProps) {
   const { selectedProject, setProjects } = useProject()
   const [isDragOver, setIsDragOver] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -65,6 +69,7 @@ export default function FileUpload() {
       }
 
       setUploadStatus('Upload completed successfully!')
+      onImagesProcessed?.()
       setTimeout(() => {
         setUploadStatus('')
         setUploadProgress(0)

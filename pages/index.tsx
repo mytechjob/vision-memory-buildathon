@@ -92,19 +92,12 @@ export default function Home() {
       </Head>
 
       <div className="min-h-screen bg-dark-500 text-dark-100">
-        <Header />
-        
-        <div className="flex">
-          <Sidebar 
-            onProjectCreated={handleProjectCreated}
-            onImagesProcessed={handleImagesProcessed}
-          />
-          
-          <MainContent 
-            images={projectImages}
-            onProjectDeleted={handleProjectDeleted}
-          />
-        </div>
+        <MainContent 
+          images={projectImages}
+          onProjectDeleted={handleProjectDeleted}
+          onProjectCreated={handleProjectCreated}
+          onImagesProcessed={handleImagesProcessed}
+        />
       </div>
     </>
   )

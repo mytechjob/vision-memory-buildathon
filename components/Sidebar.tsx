@@ -3,17 +3,19 @@ import { useProject } from '@/contexts/ProjectContext'
 import ProjectForm from './ProjectForm'
 import FileUpload from './FileUpload'
 
-export default function Sidebar() {
+interface SidebarProps {
+  onProjectCreated: (project: any) => void
+  onImagesProcessed: () => void
+}
+
+export default function Sidebar({ onProjectCreated, onImagesProcessed }: SidebarProps) {
   const { selectedProject } = useProject()
   const [activeTab, setActiveTab] = useState<'projects' | 'upload'>('projects')
 
   const sidebarStyle: React.CSSProperties = {
-    backgroundColor: '#0E1117',
-    borderRight: '1px solid #2D3139',
-    width: '350px',
-    height: '100vh',
-    overflow: 'auto',
-    padding: '24px'
+    backgroundColor: 'transparent',
+    width: '100%',
+    overflow: 'visible'
   }
 
   const tabBarStyle: React.CSSProperties = {
@@ -49,7 +51,7 @@ export default function Sidebar() {
   }
 
   return (
-    <aside style={sidebarStyle}>
+    <div style={sidebarStyle}>
       <div style={tabBarStyle}>
         <button
           onClick={() => setActiveTab('projects')}
@@ -65,11 +67,11 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {activeTab === 'projects' && <ProjectForm />}
+      {activeTab === 'projects' && <ProjectForm onProjectCreated={onProjectCreated} />}
       {activeTab === 'upload' && (
         <div>
           {selectedProject ? (
-            <FileUpload />
+            <FileUpload onImagesProcessed={onImagesProcessed} />
           ) : (
             <div
               style={{
@@ -87,6 +89,6 @@ export default function Sidebar() {
           )}
         </div>
       )}
-    </aside>
+    </div>
   )
 }

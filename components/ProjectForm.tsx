@@ -2,7 +2,11 @@ import { useState } from 'react'
 import { useProject } from '@/contexts/ProjectContext'
 import { projectApi } from '@/utils/api'
 
-export default function ProjectForm() {
+interface ProjectFormProps {
+  onProjectCreated?: (project: any) => void
+}
+
+export default function ProjectForm({ onProjectCreated }: ProjectFormProps) {
   const { projects, setProjects, setSelectedProject } = useProject()
   const [formData, setFormData] = useState({
     name: '',
@@ -22,6 +26,7 @@ export default function ProjectForm() {
         setProjects(prev => [...prev, newProject])
         setSelectedProject(newProject)
         setFormData({ name: '', description: '' })
+        onProjectCreated?.(newProject)
       }
     } catch (error) {
       console.error('Failed to create project:', error)
