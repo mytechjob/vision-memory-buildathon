@@ -599,7 +599,7 @@ def search_interface():
         "Use natural language to describe what you're looking for. Search works with both text content and visual elements.",
         key="search_query")
 
-    # Auto-focus on the search text area
+    # Auto-focus on the search text area with green border
     st.markdown("""
     <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -607,6 +607,10 @@ def search_interface():
             const searchBox = window.parent.document.querySelector('textarea[aria-label="Search your screenshots:"]');
             if (searchBox) {
                 searchBox.focus();
+                // Apply the focused styling manually
+                searchBox.style.borderColor = '#00C9A7';
+                searchBox.style.boxShadow = '0 0 0 2px rgba(0, 201, 167, 0.2)';
+                searchBox.style.outline = 'none';
             }
         }, 500);
     });
