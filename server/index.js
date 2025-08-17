@@ -185,6 +185,38 @@ app.post('/api/search', async (req, res) => {
   }
 });
 
+// Serve image thumbnails
+app.get('/api/images/:projectId/:filename', async (req, res) => {
+  try {
+    const { projectId, filename } = req.params;
+    
+    // Decode the filename from URL encoding
+    const decodedFilename = decodeURIComponent(filename);
+    
+    // Get image data from Python backend
+    const result = await callPythonScript('get_project_images.py', [projectId]);
+    
+    if (result.success && result.data) {
+      const image = result.data.find(img => img.filename === decodedFilename);
+      
+      if (image && image.thumbnail_b64) {
+        // Decode base64 and serve as image
+        const imageBuffer = Buffer.from(image.thumbnail_b64, 'base64');
+        res.set('Content-Type', 'image/jpeg');
+        res.set('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+        res.send(imageBuffer);
+      } else {
+        res.status(404).json({ error: 'Image not found' });
+      }
+    } else {
+      res.status(404).json({ error: 'Image not found' });
+    }
+  } catch (error) {
+    console.error('Error serving image:', error);
+    res.status(500).json({ error: 'Failed to serve image' });
+  }
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });

@@ -26,7 +26,7 @@ export default function SearchInterface() {
     
     try {
       const response = await searchApi.searchScreenshots(selectedProject.id, query)
-      console.log('Search response:', response) // Debug log
+      // console.log('Search response:', response) // Debug log
       if (response.success && response.data) {
         setSearchResults(response.data)
       } else {

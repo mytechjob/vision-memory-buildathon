@@ -53,8 +53,10 @@ def main():
             # Transform results to match React component expectations
             results_data = []
             for _, row in results.iterrows():
+                import urllib.parse
+                encoded_filename = urllib.parse.quote(row['filename'], safe='')
                 result_item = {
-                    'image_path': row['filename'],  # Map filename to image_path
+                    'image_path': f'/api/images/{project_id}/{encoded_filename}',  # Use properly encoded URL
                     'confidence': row['confidence_score'] / 100.0,  # Convert to 0-1 scale
                     'relevant_text': row['ocr_text'][:200] + '...' if len(str(row['ocr_text'])) > 200 else str(row['ocr_text']),
                     'description': row['match_reason'],
