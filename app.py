@@ -599,6 +599,20 @@ def search_interface():
         "Use natural language to describe what you're looking for. Search works with both text content and visual elements.",
         key="search_query")
 
+    # Auto-focus on the search text area
+    st.markdown("""
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            const searchBox = window.parent.document.querySelector('textarea[aria-label="Search your screenshots:"]');
+            if (searchBox) {
+                searchBox.focus();
+            }
+        }, 500);
+    });
+    </script>
+    """, unsafe_allow_html=True)
+
     col1, col2 = st.columns([3, 1])
     with col1:
         st.markdown("")  # Empty space for alignment
