@@ -151,7 +151,7 @@ export default function MainContent({
               e.currentTarget.style.backgroundColor = '#00C9A7'
             }}
           >
-            <span style={{ fontSize: '1.2rem' }}>+</span>
+            <span style={{ fontSize: '1.2rem' }}>»</span>
             New Project
           </button>
           
