@@ -36,6 +36,24 @@ export default function ProjectForm({ onProjectCreated }: ProjectFormProps) {
     }
   }
 
+  const handleDeleteProject = async (project: any) => {
+    if (confirm(`Are you sure you want to delete "${project.name}"?`)) {
+      try {
+        const response = await projectApi.deleteProject(project.id)
+        if (response.success) {
+          setProjects(prev => prev.filter(p => p.id !== project.id))
+          if (selectedProject?.id === project.id) {
+            const remainingProjects = projects.filter(p => p.id !== project.id)
+            setSelectedProject(remainingProjects.length > 0 ? remainingProjects[0] : null)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to delete project:', error)
+        alert('Failed to delete project')
+      }
+    }
+  }
+
   const cardStyle: React.CSSProperties = {
     backgroundColor: '#1A1D23',
     border: '1px solid #2D3139',
@@ -158,6 +176,31 @@ export default function ProjectForm({ onProjectCreated }: ProjectFormProps) {
                       borderRadius: '50%'
                     }}
                   />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDeleteProject(project)
+                    }}
+                    style={{
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      color: '#FF4444',
+                      fontSize: '0.9rem',
+                      cursor: 'pointer',
+                      padding: '4px',
+                      borderRadius: '4px',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#FF444420'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent'
+                    }}
+                    title="Delete project"
+                  >
+                    🗑️
+                  </button>
                 </div>
               </div>
             </div>

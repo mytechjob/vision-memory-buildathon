@@ -175,31 +175,6 @@ export default function MainContent({
                 </option>
               ))}
             </select>
-            
-            {selectedProject && (
-              <button
-                onClick={handleDeleteProject}
-                style={{
-                  backgroundColor: '#FF4444',
-                  color: 'white',
-                  border: 'none',
-                  padding: '8px 12px',
-                  borderRadius: '8px',
-                  fontSize: '0.9rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#FF3333'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#FF4444'
-                }}
-                title="Delete selected project"
-              >
-                🗑️ Delete
-              </button>
-            )}
           </div>
         )}
       </div>
