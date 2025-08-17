@@ -124,8 +124,8 @@ class SearchEngine:
         results_data = results_data.sort_values('similarity_score', ascending=False)
         results_data = results_data.head(max_results)
         
-        # Filter out very low confidence results
-        results_data = results_data[results_data['confidence_score'] > 10]
+        # Filter out very low confidence results (lowered threshold for better results)
+        results_data = results_data[results_data['confidence_score'] > 1]
         
         # Reset index to ensure we return a proper DataFrame
         results_data = results_data.reset_index(drop=True)

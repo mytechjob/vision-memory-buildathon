@@ -49,7 +49,19 @@ def main():
             # Convert timestamps to strings
             if 'processed_timestamp' in results.columns:
                 results['processed_timestamp'] = results['processed_timestamp'].dt.strftime('%Y-%m-%d %H:%M:%S')
-            results_data = results.to_dict('records')
+            
+            # Transform results to match React component expectations
+            results_data = []
+            for _, row in results.iterrows():
+                result_item = {
+                    'image_path': row['filename'],  # Map filename to image_path
+                    'confidence': row['confidence_score'] / 100.0,  # Convert to 0-1 scale
+                    'relevant_text': row['ocr_text'][:200] + '...' if len(str(row['ocr_text'])) > 200 else str(row['ocr_text']),
+                    'description': row['match_reason'],
+                    'filename': row['filename'],
+                    'visual_description': row['visual_description']
+                }
+                results_data.append(result_item)
         else:
             results_data = []
         
