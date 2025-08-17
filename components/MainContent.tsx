@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useProject } from '@/contexts/ProjectContext'
+import { projectApi } from '@/utils/api'
 import { Project } from '@/types'
 import WelcomeScreen from './WelcomeScreen'
 import SearchInterface from './SearchInterface'
@@ -18,12 +19,31 @@ export default function MainContent({
   onProjectCreated, 
   onImagesProcessed 
 }: MainContentProps) {
-  const { selectedProject, projects, setSelectedProject } = useProject()
+  const { selectedProject, projects, setSelectedProject, setProjects } = useProject()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   const handleProjectChange = (projectId: string) => {
     const project = projects.find(p => p.id === parseInt(projectId))
     setSelectedProject(project || null)
+  }
+
+  const handleDeleteProject = async () => {
+    if (!selectedProject) return
+    
+    if (confirm(`Are you sure you want to delete "${selectedProject.name}"?`)) {
+      try {
+        const response = await projectApi.deleteProject(selectedProject.id)
+        if (response.success) {
+          setProjects(prev => prev.filter(p => p.id !== selectedProject.id))
+          const remainingProjects = projects.filter(p => p.id !== selectedProject.id)
+          setSelectedProject(remainingProjects.length > 0 ? remainingProjects[0] : null)
+          onProjectDeleted(selectedProject.id)
+        }
+      } catch (error) {
+        console.error('Failed to delete project:', error)
+        alert('Failed to delete project')
+      }
+    }
   }
 
   const containerStyle: React.CSSProperties = {
@@ -142,18 +162,45 @@ export default function MainContent({
         </div>
 
         {projects.length > 0 && (
-          <select
-            value={selectedProject?.id || ''}
-            onChange={(e) => handleProjectChange(e.target.value)}
-            style={projectSelectorStyle}
-          >
-            <option value="">Select a project...</option>
-            {projects.map(project => (
-              <option key={project.id} value={project.id}>
-                {project.name} ({project.image_count} images)
-              </option>
-            ))}
-          </select>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <select
+              value={selectedProject?.id || ''}
+              onChange={(e) => handleProjectChange(e.target.value)}
+              style={projectSelectorStyle}
+            >
+              <option value="">Select a project...</option>
+              {projects.map(project => (
+                <option key={project.id} value={project.id}>
+                  {project.name} ({project.image_count} images)
+                </option>
+              ))}
+            </select>
+            
+            {selectedProject && (
+              <button
+                onClick={handleDeleteProject}
+                style={{
+                  backgroundColor: '#FF4444',
+                  color: 'white',
+                  border: 'none',
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#FF3333'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#FF4444'
+                }}
+                title="Delete selected project"
+              >
+                🗑️ Delete
+              </button>
+            )}
+          </div>
         )}
       </div>
 
