@@ -29,6 +29,13 @@ if 'current_project_name' not in st.session_state:
     st.session_state.current_project_name = None
 
 def main():
+    # Configure page settings
+    st.set_page_config(
+        page_title="ScreenSage",
+        page_icon="🔍",
+        layout="wide"
+    )
+    
     # Custom CSS for modern dark theme matching the provided design
     st.markdown("""
     <style>
@@ -159,7 +166,7 @@ def main():
     <div class="main-header">
         <div class="header-title">
             <span>🔍</span>
-            Visual Memory Search
+            ScreenSage
         </div>
         <div class="header-subtitle">Search through your screenshots using natural language queries</div>
     </div>
@@ -374,7 +381,7 @@ def main():
         # Welcome card
         st.markdown("""
         <div class="project-card">
-            <h4 style="color: #FAFAFA; margin-top: 0;">Welcome to Visual Memory Search</h4>
+            <h4 style="color: #FAFAFA; margin-top: 0;">Welcome to ScreenSage</h4>
             <p style="color: #B3B3B3; margin-bottom: 1.5rem;">Create a project and upload screenshots to start searching through your visual memories using natural language.</p>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
